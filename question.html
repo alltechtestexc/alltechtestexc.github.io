@@ -1,0 +1,343 @@
+<body>
+
+    <div id="groupPromt">
+        <p>Enter group code</p>
+        <input id="groupInput" onchange="setGroup()"></input>
+    </div>
+
+    <div id="questionContainer">
+        <b><p id="question">...</p></b>
+        <div id="answerPanel">
+            <input type="radio" name="answer" value="1" id="oop1"><a id="op1">.</a></input><br>
+            <input type="radio" name="answer" value="2" id="oop2"><a id="op2">.</a></input><br>
+            <input type="radio" name="answer" value="3" id="oop3"><a id="op3">.</a></input><br>
+            <input type="radio" name="answer" value="4" id="oop4"><a id="op4">.</a></input><br>
+        </div>
+        <br>
+        <button id="submit" onclick="submit()">Submit</button>
+        <br></br>
+        <b id="status"></b>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js'
+        import { getDatabase, ref as _ref, set as _set, get as _get, update as _update } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-database.js'
+
+        const firebaseConfig = {
+            authDomain: "excellence14-7-22.firebaseapp.com",
+            databaseURL: "https://excellence14-7-22-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "excellence14-7-22",
+            storageBucket: "excellence14-7-22.appspot.com",
+            messagingSenderId: "663031306331"
+            };
+
+        const app = initializeApp(firebaseConfig);
+
+        ref = _ref
+        set = _set
+        get = _get
+        update = _update
+
+        db = getDatabase()
+        group = 0
+
+    </script>
+  </body>
+
+<script>
+    
+    let db;
+    let set;
+    let get;
+    let ref;
+    let update;
+
+    let gref = "";
+    let group = 0;
+    let collection = "3"
+    let score = 0;
+
+    let attempts = 0;
+    let finished = false;
+    let lastAnswer = "";
+
+    let questionId = "";
+
+    function GetURLParameter(sParam)
+    {
+        var sPageURL = window.location.search.substring(1);
+        var sURLVariables = sPageURL.split('&');
+        for (var i = 0; i < sURLVariables.length; i++) 
+        {
+            var sParameterName = sURLVariables[i].split('=');
+            if (sParameterName[0] == sParam) 
+            {
+                return sParameterName[1];
+            }
+        }
+    }
+
+    function updateStatistics(){
+        get(ref(db, gref)).then((snapshot) => {
+            if (snapshot.exists()) {
+                value = snapshot.val()
+                score = value.score
+            } else {
+                score = 0;
+                set(ref(db, gref), {
+                    score: 0
+                })
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+    }
+
+    function updateStatus(){
+        document.getElementById("status").innerText = "Group " + group + " · " + score + " points · " + (3 - attempts) + " Attempts left"
+    }
+
+    function setup(){
+        gref = "collection" + collection + "/groups/group" + group
+        updateStatistics()
+        get(ref(db, gref + "/" + questionId)).then((snapshot) => {
+            if (snapshot.exists()) {
+                value = snapshot.val()
+                console.log(value)
+                attempts = value.attempts
+                finished = value.finished
+                lastAnswer = value.answer
+            } else {
+                attempts = 0
+            }
+            if (attempts > 2) {
+                document.getElementById("submit").disabled = true
+            } else if (finished) {
+                document.getElementById("submit").disabled = true
+            }
+            document.getElementById("groupPromt").style.display = "none";
+            updateStatus()  
+            setQuestion()          
+        }).catch((error) => {
+        console.error(error);
+        });
+    }
+
+    function setGroup(){
+        code = document.getElementById("groupInput").value;
+        group = 0
+        if (code[0] == "3"){
+            collection = "3"
+            if (code == "3472"){
+                group = 1
+            }
+            if (code == "3477"){
+                group = 2
+            }
+            if (code == "3820"){
+                group = 3
+            }
+            if (code == "3012"){
+                group = 4
+            }
+        }
+        if (group != 0) {
+            setup()
+            document.getElementById("groupInput").disabled = true
+        }
+    }
+
+    function disableRadioInput (isDisabled){
+        document.getElementsByName("answer")[0].disabled = isDisabled;
+        document.getElementsByName("answer")[1].disabled = isDisabled;
+        document.getElementsByName("answer")[2].disabled = isDisabled;
+        document.getElementsByName("answer")[3].disabled = isDisabled;
+    }
+
+    function setQuestion(){
+        get(ref(db, "questions/" + questionId)).then((snapshot) => {
+            if (snapshot.exists()) {
+                value = snapshot.val()
+                console.log(value)
+                document.getElementById("question").innerText = value.question
+                document.getElementById("op1").innerText = value.op1
+                document.getElementById("op2").innerText = value.op2
+                document.getElementById("op3").innerText = value.op3
+                document.getElementById("op4").innerText = value.op4
+                if (finished) {
+                    document.getElementById("question").style.color = "rgb(0, 255, 0)"
+                } else if (attempts > 2) {
+                    document.getElementById("question").style.color = "red"
+                }
+                if (finished | attempts > 2) {
+                    disableRadioInput(true)
+
+                    if (value.op1 == lastAnswer) {
+                        document.getElementById("oop1").checked = true
+                        document.getElementById("op1").style.color = "red"
+                    } if (value.op2 == lastAnswer) {
+                        document.getElementById("oop2").checked = true
+                        document.getElementById("op2").style.color = "red"
+                    } if (value.op3 == lastAnswer) {
+                        document.getElementById("oop3").checked = true
+                        document.getElementById("op3").style.color = "red"
+                    } if (value.op4 == lastAnswer) {
+                        document.getElementById("oop4").checked = true
+                        document.getElementById("op4").style.color = "red"
+                    }
+
+                    if (value.op1 == value.correct){
+                        document.getElementById("op1").style.color = "rgb(0, 255, 0)"
+                    }if (value.op2 == value.correct){
+                        document.getElementById("op2").style.color = "rgb(0, 255, 0)"
+                    }if (value.op3 == value.correct){
+                        document.getElementById("op3").style.color = "rgb(0, 255, 0)"
+                    }if (value.op4 == value.correct){
+                        document.getElementById("op4").style.color = "rgb(0, 255, 0)"
+                    }
+                }
+            } else {
+                console.log("Question not found")
+            }
+        }).catch((error) => {
+                    console.error(error);
+                });
+    }
+
+    function submit(){
+        let _ops = 0;
+        document.getElementsByName("answer").forEach(function(element){
+            _ops ++;
+            if(element.checked){
+                ops = _ops + 0;
+                solution = document.getElementById("op" + ops).innerText;
+                
+                correct = false
+                document.getElementById("submit").disabled = true
+                disableRadioInput(true)
+
+                get(ref(db, "questions/" + questionId)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        correctAnswer = snapshot.val().correct
+                        console.log(correctAnswer)
+                        console.log(solution)
+                        if (solution == correctAnswer){
+                            console.log("Correct!")
+                            correct = true
+                            score += 30 - attempts * 10
+                            document.getElementById("op" + ops).style.color = "rgb(0, 255, 0)"
+                        }else{
+                            document.getElementById("op" + ops).style.color = "rgb(255, 0, 0)"
+                        }
+                            
+                        attempts += 1
+
+                        set(ref(db, gref + "/" + questionId), {
+                            attempts: attempts,
+                            finished: correct,
+                            answer: solution,
+                        })
+
+                        update(ref(db, gref), {
+                            score: score
+                        })
+                        
+                        document.getElementById("submit").disabled = correct | attempts > 2
+                        disableRadioInput(correct | attempts > 2)
+
+                        updateStatus()  
+
+                    } 
+                }).catch((error) => {
+                    console.error(error);
+                });
+
+                
+
+            }
+        })
+    }
+
+    questionId = GetURLParameter("qid")
+
+</script>
+
+<style>
+
+    #groupPromt {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(23deg, rgb(0, 174, 255), rgb(3, 85, 192));
+        text-align: center;
+    }
+
+    #groupInput {
+        background: none;
+        outline: none;
+        border: white solid 2px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+    }
+
+    #questionContainer {
+        padding-top: 10%;
+        text-align: center;
+    }
+
+    #question {
+        backdrop-filter: blur;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    #answerPanel {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        width: 40%;
+        margin-left: 30%;
+        text-align: left;
+    }
+
+    #submit {
+        background-color: rgba(255, 255, 255, 1);
+        color: black;
+        border: white solid 2px;
+        border-radius: 10px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    #submit:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: rgba(255, 255, 255, 0.9) solid 2px;
+        color: black;
+    }
+
+    #submit:disabled {
+        background-color: rgba(255, 255, 255, 0);
+        color: rgb(255, 255, 255);
+    }
+
+    #submit:disabled:hover {
+        background-color: rgba(255, 255, 255, 0);
+        color: rgb(255, 255, 255);
+    }
+
+    input[type=radio]::content {
+        color: aqua;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+        text-align: center;
+        background: linear-gradient(23deg, rgb(0, 174, 255), rgb(3, 85, 192));
+        color: white;
+        font-size: 20px;
+        margin: 0px;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+</style>
