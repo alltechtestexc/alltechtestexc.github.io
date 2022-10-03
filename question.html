@@ -1,14 +1,14 @@
-<body>
+<body dir="rtl">
 
     <div id="groupPromt">
-        <p>Enter group code</p>
+        <p>הכנס קוד קבוצה סודי:</p>
         <input id="groupInput" onchange="setGroup()"></input>
     </div>
 
     <div id="questionContainer">
         <div id="questionContainerCore"></div>
         <br>
-        <button id="submit" onclick="submit()">Submit</button>
+        <button id="submit" onclick="submit()">הגשה</button>
         <br></br>
         <b id="status"></b>
     </div>
@@ -91,13 +91,13 @@
 
     function updateStatus(){
         if (isRadio) {
-            document.getElementById("status").innerText = "Group " + group + " · " + (3 - attempts) + " Attempts left"
+            document.getElementById("status").innerText = "קבוצה " + group + " · " + (3 - attempts) + " נסיונות נותרו"
             //document.getElementById("status").innerText = "Group " + group + " · " + score + " points · " + (3 - attempts) + " Attempts left"
         } else {
             if (attempts == 0){
-                document.getElementById("status").innerText = "Group " + group + " · 1 Attempt left"
+                document.getElementById("status").innerText = "קבוצה " + group + " · טרם עניתם על השאלה"
             } else {
-                document.getElementById("status").innerText = "Group " + group + " · Answered"
+                document.getElementById("status").innerText = "Group " + group + " · השאלה נענתה"
             }
             
         }
@@ -235,6 +235,7 @@
             } else {
                 console.log("Question not found")
             }
+            updateStatus();
         }).catch((error) => {
                     console.error(error);
                 });
@@ -351,8 +352,8 @@
         background-color: rgba(255, 255, 255, 0.2);
         border-radius: 10px;
         width: 40%;
-        margin-left: 30%;
-        text-align: left;
+        margin-right: 30%;
+        text-align: right;
     }
 
     #submit {
@@ -397,6 +398,7 @@
     }
 
     #field {
+        text-align: right;
         background-color: rgba(255, 255, 255, 0);
         color: black;
         border: white solid 2px;
