@@ -6,13 +6,7 @@
     </div>
 
     <div id="questionContainer">
-        <b><p id="question">...</p></b>
-        <div id="answerPanel">
-            <input type="radio" name="answer" value="1" id="oop1"><a id="op1">.</a></input><br>
-            <input type="radio" name="answer" value="2" id="oop2"><a id="op2">.</a></input><br>
-            <input type="radio" name="answer" value="3" id="oop3"><a id="op3">.</a></input><br>
-            <input type="radio" name="answer" value="4" id="oop4"><a id="op4">.</a></input><br>
-        </div>
+        <div id="questionContainerCore"></div>
         <br>
         <button id="submit" onclick="submit()">Submit</button>
         <br></br>
@@ -63,6 +57,8 @@
 
     let questionId = "";
 
+    let isRadio = false;
+
     function GetURLParameter(sParam)
     {
         var sPageURL = window.location.search.substring(1);
@@ -94,7 +90,19 @@
     }
 
     function updateStatus(){
-        document.getElementById("status").innerText = "Group " + group + " · " + score + " points · " + (3 - attempts) + " Attempts left"
+        if (isRadio) {
+            document.getElementById("status").innerText = "Group " + group + " · " + (3 - attempts) + " Attempts left"
+            //document.getElementById("status").innerText = "Group " + group + " · " + score + " points · " + (3 - attempts) + " Attempts left"
+        } else {
+            if (attempts == 0){
+                document.getElementById("status").innerText = "Group " + group + " · 1 Attempt left"
+            } else {
+                document.getElementById("status").innerText = "Group " + group + " · Answered"
+            }
+            
+        }
+        
+        
     }
 
     function setup(){
@@ -116,8 +124,8 @@
                 document.getElementById("submit").disabled = true
             }
             document.getElementById("groupPromt").style.display = "none";
-            updateStatus()  
-            setQuestion()          
+            setQuestion()   
+            updateStatus()         
         }).catch((error) => {
         console.error(error);
         });
@@ -158,44 +166,72 @@
         get(ref(db, "questions/" + questionId)).then((snapshot) => {
             if (snapshot.exists()) {
                 value = snapshot.val()
-                console.log(value)
-                document.getElementById("question").innerText = value.question
-                document.getElementById("op1").innerText = value.op1
-                document.getElementById("op2").innerText = value.op2
-                document.getElementById("op3").innerText = value.op3
-                document.getElementById("op4").innerText = value.op4
-                if (finished) {
-                    document.getElementById("question").style.color = "rgb(0, 255, 0)"
-                } else if (attempts > 2) {
-                    document.getElementById("question").style.color = "red"
-                }
-                if (finished | attempts > 2) {
-                    disableRadioInput(true)
+                type = value.type
+                if (type == "radio"){
+                    isRadio = true
 
-                    if (value.op1 == lastAnswer) {
-                        document.getElementById("oop1").checked = true
-                        document.getElementById("op1").style.color = "red"
-                    } if (value.op2 == lastAnswer) {
-                        document.getElementById("oop2").checked = true
-                        document.getElementById("op2").style.color = "red"
-                    } if (value.op3 == lastAnswer) {
-                        document.getElementById("oop3").checked = true
-                        document.getElementById("op3").style.color = "red"
-                    } if (value.op4 == lastAnswer) {
-                        document.getElementById("oop4").checked = true
-                        document.getElementById("op4").style.color = "red"
+                    document.getElementById("questionContainerCore").innerHTML = 
+                    `<b><p id="question">...</p></b>
+                    <div id="answerPanel">
+                        <input type="radio" name="answer" value="1" id="oop1"><a id="op1">.</a></input><br>
+                        <input type="radio" name="answer" value="2" id="oop2"><a id="op2">.</a></input><br>
+                        <input type="radio" name="answer" value="3" id="oop3"><a id="op3">.</a></input><br>
+                        <input type="radio" name="answer" value="4" id="oop4"><a id="op4">.</a></input><br>
+                    </div>`
+                
+                    document.getElementById("question").innerText = value.question
+                    document.getElementById("op1").innerText = value.op1
+                    document.getElementById("op2").innerText = value.op2
+                    document.getElementById("op3").innerText = value.op3
+                    document.getElementById("op4").innerText = value.op4
+                    if (finished) {
+                        document.getElementById("question").style.color = "rgb(0, 255, 0)"
+                    } else if (attempts > 2) {
+                        document.getElementById("question").style.color = "red"
+                    }
+                    if (finished | attempts > 2) {
+                        disableRadioInput(true)
+
+                        if (value.op1 == lastAnswer) {
+                            document.getElementById("oop1").checked = true
+                            document.getElementById("op1").style.color = "red"
+                        } if (value.op2 == lastAnswer) {
+                            document.getElementById("oop2").checked = true
+                            document.getElementById("op2").style.color = "red"
+                        } if (value.op3 == lastAnswer) {
+                            document.getElementById("oop3").checked = true
+                            document.getElementById("op3").style.color = "red"
+                        } if (value.op4 == lastAnswer) {
+                            document.getElementById("oop4").checked = true
+                            document.getElementById("op4").style.color = "red"
+                        }
+
+                        if (value.op1 == value.correct){
+                            document.getElementById("op1").style.color = "rgb(0, 255, 0)"
+                        }if (value.op2 == value.correct){
+                            document.getElementById("op2").style.color = "rgb(0, 255, 0)"
+                        }if (value.op3 == value.correct){
+                            document.getElementById("op3").style.color = "rgb(0, 255, 0)"
+                        }if (value.op4 == value.correct){
+                            document.getElementById("op4").style.color = "rgb(0, 255, 0)"
+                        }
+                    }
+                } else {
+                    document.getElementById("questionContainerCore").innerHTML = 
+                    `<b><p id="question">...</p></b>
+                    <div id="answerPanel">
+                        <input name="answer" id="field"></input>
+                    </div>`
+
+                    document.getElementById("question").innerText = value.question
+
+                    if (attempts > 0) {
+                        document.getElementById("field").value = lastAnswer
+                        document.getElementById("submit").disabled = true
+                        document.getElementById("field").disabled = true
                     }
 
-                    if (value.op1 == value.correct){
-                        document.getElementById("op1").style.color = "rgb(0, 255, 0)"
-                    }if (value.op2 == value.correct){
-                        document.getElementById("op2").style.color = "rgb(0, 255, 0)"
-                    }if (value.op3 == value.correct){
-                        document.getElementById("op3").style.color = "rgb(0, 255, 0)"
-                    }if (value.op4 == value.correct){
-                        document.getElementById("op4").style.color = "rgb(0, 255, 0)"
-                    }
-                }
+                } 
             } else {
                 console.log("Question not found")
             }
@@ -205,6 +241,26 @@
     }
 
     function submit(){
+
+        if (!isRadio) {
+            solution = document.getElementById("field").value
+
+            document.getElementById("submit").disabled = true
+            document.getElementById("field").disabled = true
+
+            set(ref(db, gref + "/" + questionId), {
+                answer: solution,
+                attempts: 3,
+            })
+
+            attempts = 3;
+
+            updateStatus()
+
+            return
+        }
+
+
         let _ops = 0;
         document.getElementsByName("answer").forEach(function(element){
             _ops ++;
@@ -338,6 +394,25 @@
         font-size: 20px;
         margin: 0px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    #field {
+        background-color: rgba(255, 255, 255, 0);
+        color: black;
+        border: white solid 2px;
+        border-radius: 10px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 20px;
+        padding-right: 20px;
+        width: 100%;
+        font-size: 20px;
+        background: none;
+        outline: none;
+        border: white solid 2px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
     }
 
 </style>
