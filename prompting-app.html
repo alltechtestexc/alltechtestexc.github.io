@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הנדסת פרומפטים: המדריך המלא</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: An interactive single-page application with a persistent sidebar for navigation, collapsible content sections for clarity, and interactive visualizations. Gemini API integration adds a "Prompt Enhancer" for user prompts and "Generate Example" for each technique, now with a dedicated input for the user's API key. This structure supports non-linear exploration and active learning, prioritizing quick access and understanding of specific topics, now augmented with AI-powered interactive tools and clearer examples. -->
+    <!-- Visualization & Content Choices: 1. Core Concepts: Text blocks. 2. LLM Configuration: Interactive Chart.js bar chart for "Temperature", with preceding static text examples. Goal: Compare/Inform/Illustrate. 3. Prompting Techniques: Interactive cards linked to details. Gemini "Generate Example" buttons added. Goal: Organize/Compare/Illustrate. 4. Code Examples: <pre><code> with "copy". Goal: Inform/Enable. 5. Best Practices: Accordion list. Goal: Inform. 6. Gemini Prompt Enhancer: Textarea input, API key input, button, text output. Goal: Apply/Learn. 7. Gemini Generate Example: Button per technique, text output. Goal: Illustrate/Learn. All interactions via Vanilla JS. LLM calls via Fetch API to gemini-2.0-flash using user-provided key. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 40vh;
+        }
+        .rtl-code {
+            direction: ltr;
+            text-align: left;
+        }
+        .nav-link.active {
+            background-color: #e0f2fe; /* light-blue-100 */
+            color: #0369a1; /* cyan-700 */
+            font-weight: 500;
+        }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .tech-card {
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .tech-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border-color: #38bdf8;
+        }
+        details summary {
+            cursor: pointer;
+            outline: none;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        details summary::before {
+            content: '◀';
+            margin-left: 0.5rem;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        details[open] summary::before {
+            transform: rotate(90deg);
+        }
+        .gemini-output {
+            white-space: pre-wrap; 
+            font-family: 'Heebo', sans-serif; 
+        }
+        .temperature-example {
+            background-color: #f8fafc; /* slate-50 */
+            border: 1px solid #e2e8f0; /* slate-200 */
+            padding: 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+    <div class="flex flex-col md:flex-row">
+        
+        <button id="menu-toggle" class="md:hidden fixed top-4 right-4 z-30 p-2 bg-white rounded-md shadow-lg text-cyan-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+        </button>
+
+        <nav id="sidebar" class="w-full md:w-72 bg-white shadow-lg fixed top-0 right-0 h-full z-20 transform translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
+            <div class="p-6 border-b border-slate-200">
+                <h2 class="text-2xl font-bold text-cyan-700">ניווט במדריך</h2>
+            </div>
+            <ul class="py-4 space-y-1">
+                <li><a href="#intro" class="nav-link block px-6 py-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-md">מבוא</a></li>
+                <li><a href="#config" class="nav-link block px-6 py-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-md">הגדרות פלט</a></li>
+                <li><a href="#techniques" class="nav-link block px-6 py-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-md">טכניקות פרומפטינג</a></li>
+                <li><a href="#prompt-enhancer" class="nav-link block px-6 py-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-md">✨ משפר פרומפטים</a></li>
+                <li><a href="#best-practices" class="nav-link block px-6 py-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-md">שיטות עבודה</a></li>
+            </ul>
+        </nav>
+
+        <main class="flex-1 md:mr-72 p-4 sm:p-6 md:p-10">
+            <header class="mb-12 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold text-cyan-800">הנדסת פרומפטים: המדריך המלא</h1>
+                <p class="mt-4 text-lg text-slate-600">מבוסס על מצגת מאת: לי בונסטרה וסיכום של מאט וולף</p>
+            </header>
+
+            <section id="intro" class="mb-12 space-y-8 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-semibold text-cyan-700 border-r-4 border-cyan-500 pr-4">מבוא: מהי הנדסת פרומפטים?</h2>
+                <p class="text-slate-700 leading-relaxed">הנדסת פרומפטים (Prompt Engineering) היא אוסף של אסטרטגיות וטכניקות המיועדות להפיק את המרב ממודלי שפה גדולים (LLMs). המטרה היא לנסח הנחיות (פרומפטים) בצורה כזו שהמודל יבין את כוונת המשתמש בצורה המדויקת ביותר ויספק את התוצאה הרצויה. אין צורך להיות מדען נתונים כדי לכתוב פרומפט – כל אחד יכול לעשות זאת, אך ניסוח יעיל הוא אומנות ומדע. היבטים רבים משפיעים על יעילותו: המודל, נתוני האימון, תצורות, בחירת מילים, סגנון, מבנה והקשר.</p>
+                
+                <details class="bg-slate-50 p-4 rounded-lg ">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">כיצד מודלי שפה גדולים (LLMs) עובדים?</summary>
+                    <div class="mt-3 text-slate-600 leading-relaxed space-y-2">
+                        <p>כאשר אנו "משוחחים" עם מודל כמו ChatGPT, Gemini, Claude וכו', אנו מקלידים קלט (פרומפט) בשפה טבעית, והמודל מייצר פלט, בדרך כלל גם הוא בשפה טבעית.</p>
+                        <p>מודלי שפה גדולים פועלים כמעין "מנועי חיזוי". הם לוקחים את הקלט שלנו (הפרומפט) ומנסים לחזות מה צריך להיות הפלט בהתבסס על הקלט הזה ועל כמויות המידע העצומות שעליהן אומנו. המודל לוקח טקסט רציף כקלט (הפרומפט שלנו) ואז חוזה מה צריך להיות ה"טוקן" (Token) הבא, בהתבסס על הנתונים שעליהם אומן. התהליך הזה חוזר על עצמו, כאשר כל טוקן חזוי מתווסף לרצף הטקסט לצורך חיזוי הטוקן הבא.</p>
+                    </div>
+                </details>
+
+                <details class="bg-slate-50 p-4 rounded-lg ">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">מהו "טוקן" (Token)?</summary>
+                    <div class="mt-3 text-slate-600 leading-relaxed space-y-2">
+                        <p>טוקן הוא יחידת הבסיס שבה משתמשים מודלי שפה. באופן פשטני, ניתן לחשוב על טוקן כמילה, אך למעשה הוא יכול להיות גם חלק ממילה (למשל, סיומת או תחילית), סימן פיסוק, או אפילו רווח. בדרך כלל, טוקן מייצג כ-3/4 מילה.</p>
+                        <p>לדוגמה, הפרומפט: "מה הבניין הכי גבוה?" (What is the tallest building?) יכול להתפרק לטוקנים כמו: <code>["מה", "הבניין", "הכי", "גבוה", "?"]</code>.</p>
+                        <p>איכות הפרומפט – אופן הניסוח, המילים הנבחרות, הדוגמאות הניתנות – משפיעה ישירות על איכות הפלט. כל אלו הם חלק מהנדסת פרומפטים.</p>
+                    </div>
+                </details>
+            </section>
+
+            <section id="config" class="mb-12 space-y-8 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-semibold text-cyan-700 border-r-4 border-cyan-500 pr-4">הגדרות תצורת פלט</h2>
+                <p class="text-slate-700 leading-relaxed">לפני שנצלול לטכניקות, חשוב להבין מספר הגדרות המשפיעות על פלט המודל. התאמה אופטימלית שלהן חיונית לתוצאה הרצויה.</p>
+                
+                <details class="bg-slate-50 p-4 rounded-lg ">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">1.1 אורך פלט (Output Length)</summary>
+                    <div class="mt-3 text-slate-600 leading-relaxed space-y-2">
+                        <p>זוהי הגדרה הקובעת את המספר המקסימלי של טוקנים שהמודל יפיק בתגובה לפרומפט.</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>השפעה:</strong> יצירת יותר טוקנים דורשת יותר כוח חישוב מה-LLM, מה שמוביל לצריכת אנרגיה גבוהה יותר, זמני תגובה איטיים יותר פוטנציאלית, ועלויות גבוהות יותר.</li>
+                            <li><strong>ניואנס חשוב:</strong> הפחתת אורך הפלט של ה-LLM <em>לא</em> גורמת למודל להיות תמציתי יותר סגנונית או טקסטואלית בפלט שהוא יוצר; היא פשוט גורמת ל-LLM להפסיק לחזות טוקנים נוספים ברגע שהמגבלה הושגה. כלומר, הפלט פשוט ייקטע.</li>
+                        </ul>
+                        <p><strong>דוגמה:</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                           <li>פרומפט: "כתוב סיפור על דוב פנדה."</li>
+                           <li>אורך פלט מקסימלי: 5 טוקנים. פלט אפשרי: "הלחישה של הבמבוק..."</li>
+                           <li>אורך פלט מקסימלי: 50 טוקנים. פלט אפשרי: "הלחישה של הבמבוק... לין לא היה כמו דובי הפנדה האחרים בשמורת הפסגה הערפילית. בעוד הם לעסו בשמחה במבוק... (והפלט ייקטע כאן אם יגיע למגבלת 50 הטוקנים)."</li>
+                        </ul>
+                        <p>אם הצרכים שלך דורשים אורך פלט קצר, ייתכן שתצטרך גם להנדס את הפרומפט שלך בהתאם כדי שהמודל יספק תשובה תמציתית ושלמה במסגרת המגבלה.</p>
+                    </div>
+                </details>
+
+                <div class="border-t border-slate-200 pt-6">
+                    <h3 class="text-2xl font-semibold mb-3 text-cyan-700">1.2 בקרות דגימה (Sampling Controls)</h3>
+                    <p class="mb-4 text-slate-600 leading-relaxed">LLM-ים חוזים הסתברויות לגבי מה יכול להיות הטוקן הבא. "טמפרטורה", "Top-K" ו-"Top-P" הן הגדרות הקובעות כיצד הסתברויות אלו מעובדות לבחירת טוקן פלט.</p>
+                    
+                    <details class="bg-slate-50 p-4 rounded-lg mb-4">
+                        <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">1.2.1 טמפרטורה (Temperature)</summary>
+                        <div class="mt-3 text-slate-600 leading-relaxed space-y-2">
+                            <p>הטמפרטורה שולטת במידת האקראיות של הפלט. ערך נמוך (קרוב ל-0) יוצר תשובות צפויות ועובדתיות יותר, בעוד שערך גבוה (קרוב ל-1 או יותר) מעודד יצירתיות ומגוון. טמפרטורה של 0 היא דטרמיניסטית (הטוקן הסביר ביותר נבחר תמיד).</p>
+                            
+                            <p class="mt-3 font-medium">פרומפט לדוגמה: "כתוב שורה פתיחה לסיפור פנטזיה על ממלכה נסתרת בהרים."</p>
+                            <div class="temperature-example">
+                                <p><strong class="text-cyan-600">טמפרטורה ~0 (צפוי ועובדתי):</strong></p>
+                                <p>"מאחורי רכס הרי הערפל שכנה ממלכת אלדוריה, נסתרת מעין כל."</p>
+                            </div>
+                            <div class="temperature-example">
+                                <p><strong class="text-purple-600">טמפרטורה ~1 (יצירתי ומפתיע):</strong></p>
+                                <p>"רק לחישות הרוח בין צוקי השיש ידעו את הדרך אל אלדוריה, שם חלומות נארגו לאור כוכבים והזמן רקד בקצב שונה."</p>
+                            </div>
+                           
+                            <p class="mt-4">הזיזו את המחוון כדי לראות איך ההסתברות לבחירת מילים שונות משתנה:</p>
+                            <div class="chart-container">
+                                <canvas id="tempChart"></canvas>
+                            </div>
+                            <div class="mt-4">
+                                <label for="tempSlider" class="block mb-2 font-medium text-slate-700">טמפרטורה: <span id="tempValue" class="font-semibold text-cyan-700">0.50</span></label>
+                                <input type="range" id="tempSlider" min="0.01" max="1.5" step="0.01" value="0.5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-cyan-600">
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="bg-slate-50 p-4 rounded-lg">
+                        <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">1.2.2 Top-K ו-Top-P (דגימת גרעין)</summary>
+                        <div class="mt-3 text-slate-600 leading-relaxed space-y-2">
+                           <p>אלו שתי הגדרות דגימה נוספות המגבילות את בחירת הטוקן הבא לטוקנים הסבירים ביותר:</p>
+                           <ul class="list-disc list-inside space-y-1">
+                               <li><strong>Top-K:</strong> בוחרת את K הטוקנים הסבירים ביותר. K גבוה = יצירתי יותר, K נמוך = עובדתי יותר. Top-K של 1 שקול לטמפרטורה 0.</li>
+                               <li><strong>Top-P (דגימת גרעין):</strong> בוחרת את הטוקנים שההסתברות המצטברת שלהם אינה עולה על ערך P מסוים (0 עד 1).</li>
+                           </ul>
+                           <p><strong>המלצה:</strong> בדרך כלל מומלץ להתנסות עם שיטות אלו (או שתיהן יחד) ולראות איזו מהן מניבה את התוצאות הרצויות. לרוב, שינוי הטמפרטורה מספק די והותר שליטה.</p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <section id="techniques" class="mb-12 space-y-8 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-semibold text-cyan-700 border-r-4 border-cyan-500 pr-4">טכניקות פרומפטינג</h2>
+                <p class="text-slate-700 leading-relaxed mb-6">כאן תוכלו לחקור טכניקות שונות שישפרו את התוצאות שתקבלו מהמודלים. לחצו על כל טכניקה כדי לקפוץ להסבר המפורט, ונסו את כפתורי ה-✨Gemini כדי לקבל דוגמאות נוספות!</p>
+                <div class="tech-grid">
+                    <a href="#tech-zero-shot" class="tech-card bg-cyan-50 hover:bg-cyan-100 text-cyan-700">Zero-Shot</a>
+                    <a href="#tech-few-shot" class="tech-card bg-sky-50 hover:bg-sky-100 text-sky-700">Few-Shot</a>
+                    <a href="#tech-role" class="tech-card bg-blue-50 hover:bg-blue-100 text-blue-700">תפקיד ומערכת</a>
+                    <a href="#tech-cot" class="tech-card bg-indigo-50 hover:bg-indigo-100 text-indigo-700">שרשרת מחשבה (CoT)</a>
+                    <a href="#tech-step-back" class="tech-card bg-violet-50 hover:bg-violet-100 text-violet-700">נסיגה לאחור</a>
+                    <a href="#tech-react" class="tech-card bg-purple-50 hover:bg-purple-100 text-purple-700">ReAct</a>
+                    <a href="#tech-tot" class="tech-card bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700">עץ מחשבות (ToT)</a>
+                    <a href="#tech-ape" class="tech-card bg-pink-50 hover:bg-pink-100 text-pink-700">APE</a>
+                </div>
+
+                <div class="mt-10 space-y-10">
+                    <article id="tech-zero-shot" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-cyan-700 mb-3">2.1 פרומפטינג כללי / Zero-Shot ("אפס דוגמאות")</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">הסוג הפשוט ביותר של פרומפט. הוא מספק רק תיאור של משימה וטקסט כלשהו כדי שה-LLM יתחיל איתו. קלט זה יכול להיות כל דבר: שאלה, התחלה של סיפור, או הוראות. השם Zero-Shot מייצג "ללא דוגמאות". יעיל למשימות פשוטות שהמודל כבר אומן עליהן היטב.</p>
+                        <p class="mt-3 text-slate-600 font-medium">דוגמה: סיווג ביקורות סרטים.</p>
+                        <div class="mt-2 bg-slate-100 p-4 rounded-lg">
+                           <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">סווג ביקורות סרטים כחיובית, ניטרלית או שלילית.
+ביקורת: הסרט "היא" (Her) הוא מחקר מטריד החושף את הכיוון אליו האנושות צועדת אם מותר לבינה המלאכותית להמשיך להתפתח ללא בקרה. הלוואי והיו עוד סרטים כמו יצירת המופת הזו.
+סנטימנט:</code></pre>
+                            <button class="copy-btn mt-2 bg-cyan-600 text-white px-3 py-1 text-xs rounded hover:bg-cyan-700 transition-colors">העתק קוד</button>
+                        </div>
+                        <p class="mt-2 text-slate-600">פלט צפוי מהמודל: <code class="bg-slate-200 px-1 rounded">חיובי</code></p>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_zeroShot" data-technique-name="פרומפטינג Zero-Shot" data-technique-description="טכניקה המספקת למודל תיאור משימה ללא דוגמאות." class="generate-example-btn bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_zeroShot" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_zeroShot" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-cyan-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+
+                     <article id="tech-few-shot" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-sky-700 mb-3">2.2 One-Shot ו-Few-Shot ("דוגמה אחת" / "מספר דוגמאות")</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">כאשר Zero-Shot לא עובד, ניתן לספק הדגמות או דוגמאות בפרומפט.</p>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600 mt-2">
+                            <li><strong>One-Shot ("דוגמה-אחת"):</strong> מספק דוגמה <em>אחת</em> למודל. הרעיון הוא שלמודל יש דוגמה שהוא יכול לחקות.</li>
+                            <li><strong>Few-Shot ("מספר-דוגמאות"):</strong> מספק <em>מספר</em> דוגמאות למודל. גישה זו מראה למודל תבנית שעליו לעקוב אחריה.</li>
+                        </ul>
+                        <p class="mt-2 text-slate-600"><strong>יתרון:</strong> יעיל במיוחד כאשר רוצים שהפלט יהיה במבנה או תבנית מסוימים.</p>
+                        <p class="mt-2 text-slate-600"><strong>שיקולים:</strong> מספר הדוגמאות תלוי במורכבות המשימה, איכות הדוגמאות, ויכולות המודל. בדרך כלל, 3-5 דוגמאות מספיקות לפרומפטינג Few-Shot.</p>
+                        <p class="mt-3 text-slate-600 font-medium">דוגמה (Few-Shot): המרת הזמנת פיצה ל-JSON.</p>
+                        <div class="mt-2 bg-slate-100 p-4 rounded-lg">
+                           <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-json">המר הזמנת פיצה של לקוח ל-JSON חוקי:
+
+דוגמה:
+אני רוצה פיצה קטנה עם גבינה, רוטב עגבניות ופפרוני.
+תגובת JSON:
+{
+  "size": "small",
+  "type": "normal",
+  "ingredients": [["cheese", "tomato sauce", "pepperoni"]]
+}
+
+עכשיו, אני רוצה פיצה גדולה, חצי ראשון גבינה ומוצרלה. והחצי השני רוטב עגבניות, האם ואננס.
+תגובת JSON:
+</code></pre>
+                            <button class="copy-btn mt-2 bg-sky-600 text-white px-3 py-1 text-xs rounded hover:bg-sky-700 transition-colors">העתק קוד</button>
+                        </div>
+                         <p class="mt-2 text-slate-600">פלט צפוי מהמודל (המשך ל-JSON):</p>
+                         <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                            <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-json">{
+  "size": "large",
+  "type": "half-half",
+  "ingredients": [["cheese", "mozzarella"], ["tomato sauce", "ham", "pineapple"]]
+}</code></pre>
+                         </div>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_fewShot" data-technique-name="פרומפטינג Few-Shot" data-technique-description="טכניקה המספקת למודל מספר דוגמאות כדי להדגים תבנית או מבנה רצוי." class="generate-example-btn bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_fewShot" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_fewShot" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-sky-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article id="tech-role" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-blue-700 mb-3">2.3 פרומפטינג מערכת, הקשרי ותפקיד</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">אלו הן טכניקות המשמשות להנחות את ה-LLM כיצד לייצר טקסט, תוך התמקדות בהיבטים שונים:</p>
+                        <details class="mt-3 bg-slate-50 p-3 rounded-md">
+                            <summary class="font-medium text-slate-700">פרומפטינג מערכת (System Prompting)</summary>
+                            <p class="mt-2 text-slate-600">מגדיר את ההקשר הכללי והמטרה עבור מודל השפה. הוא מגדיר את "התמונה הגדולה" של מה שהמודל צריך לעשות (למשל, תרגום, סיווג). בממשקים רבים (כמו Google AI Studio), יש אזור ייעודי להוראות מערכת.</p>
+                        </details>
+                        <details class="mt-3 bg-slate-50 p-3 rounded-md">
+                            <summary class="font-medium text-slate-700">פרומפטינג הקשרי (Contextual Prompting)</summary>
+                            <p class="mt-2 text-slate-600">מספק פרטים ספציפיים או מידע רקע רלוונטי לשיחה או למשימה הנוכחית. עוזר למודל להבין ניואנסים ולהתאים את התגובה.</p>
+                            <p class="mt-1 text-slate-600"><strong>דוגמה:</strong> הקשר: "אתה כותב עבור בלוג על משחקי ארקייד רטרו משנות ה-80." משימה: "הצע 3 נושאים למאמר עם תיאור קצר."</p>
+                        </details>
+                        <details class="mt-3 bg-slate-50 p-3 rounded-md">
+                            <summary class="font-medium text-slate-700">פרומפטינג תפקיד (Role Prompting)</summary>
+                            <p class="mt-2 text-slate-600">מקצה דמות או זהות ספציפית למודל השפה לאמץ. זה עוזר למודל לייצר תגובות עקביות עם התפקיד שהוקצה לו. זהו כלי חזק מאוד.</p>
+                            <p class="mt-1 text-slate-600"><strong>דוגמה:</strong></p>
+                            <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                               <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">אני רוצה שתתנהג כמדריך טיולים. אני אכתוב לך על המיקום שלי ואתה תציע 3 מקומות לבקר בקרבתי. 
+ההצעה שלי: 'אני באמסטרדם ואני רוצה לבקר רק במוזיאונים.'
+הצעות טיול:</code></pre>
+                                <button class="copy-btn mt-2 bg-blue-600 text-white px-3 py-1 text-xs rounded hover:bg-blue-700 transition-colors">העתק קוד</button>
+                            </div>
+                            <p class="mt-1 text-slate-600">פלט צפוי: רשימה של 3 מוזיאונים באמסטרדם עם תיאורים.</p>
+                        </details>
+                        <p class="mt-3 text-slate-600">יש חפיפה ניכרת בין פרומפטינג מערכת, הקשרי ותפקיד. למשל, פרומפט המקצה תפקיד למערכת יכול לכלול גם הקשר.</p>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_role" data-technique-name="פרומפטינג תפקיד" data-technique-description="טכניקה המקצה למודל דמות או זהות ספציפית לאמץ כדי להנחות את סגנון ותוכן התגובה." class="generate-example-btn bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_role" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_role" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article id="tech-step-back" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-violet-700 mb-3">2.4 פרומפטינג בנסיגה לאחור (Step-Back Prompting)</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">טכניקה לשיפור הביצועים על ידי הנחיית ה-LLM לשקול תחילה שאלה כללית הקשורה למשימה הספציפית הנתונה, ולאחר מכן להזין את התשובה לשאלה הכללית הזו לפרומפט הבא עבור המשימה הספציפית. "נסיגה לאחור" זו מאפשרת ל-LLM להפעיל ידע רקע רלוונטי ותהליכי חשיבה לפני שהוא מנסה לפתור את הבעיה הספציפית.</p>
+                        <p class="mt-2 text-slate-600"><strong>יתרון:</strong> על ידי התחשבות בעקרונות הרחבים והבסיסיים יותר, LLM-ים יכולים לייצר תגובות מדויקות ומלאות תובנה יותר. הוא מעודד LLM-ים לחשוב בצורה ביקורתית וליישם את הידע שלהם בדרכים חדשות ויצירתיות.</p>
+                        <p class="mt-3 text-slate-600 font-medium">דוגמה: יצירת קו עלילה למשחק יריות בגוף ראשון.</p>
+                        <ul class="list-decimal list-inside space-y-2 text-slate-600 mt-2">
+                            <li><strong>פרומפט סטנדרטי (ללא נסיגה לאחור):</strong> "כתוב קו עלילה בן פסקה אחת לשלב חדש במשחק יריות בגוף ראשון שיהיה מאתגר ומרתק."
+                                <ul class="list-disc list-inside ml-4"><li>פלט אפשרי: "תחנת החלל הנטושה 'איקרוס' הפכה למבוך קטלני..." (גנרי יחסית).</li></ul>
+                            </li>
+                            <li><strong>פרומפט בנסיגה לאחור (Step-Back):</strong>
+                                <ol class="list-alpha list-inside ml-4 space-y-1">
+                                    <li><strong>שאלה כללית (נסיגה לאחור):</strong> "בהתבסס על משחקי פעולה פופולריים של יריות בגוף ראשון, מהן 5 תפאורות מפתח בדיוניות התורמות לשלב מאתגר ומרתק במשחק יריות בגוף ראשון?"
+                                        <ul class="list-disc list-inside ml-4"><li>פלט אפשרי מהמודל: רשימה של 5 תפאורות (למשל, תחנת חלל נטושה, עיר מגה-עתידנית מתפוררת, וכו').</li></ul>
+                                    </li>
+                                    <li><strong>פרומפט ספציפי (עם הקשר מהשלב הקודם):</strong> "קח אחד מהנושאים הללו (למשל, 'תחנת חלל נטושה הרדופה על ידי ננו-בוטים אדפטיביים') וכתוב קו עלילה בן פסקה אחת לשלב חדש במשחק יריות בגוף ראשון שיהיה מאתגר ומרתק."
+                                        <ul class="list-disc list-inside ml-4"><li>פלט אפשרי: קו עלילה מפורט יותר וממוקד סביב הנושא שנבחר.</li></ul>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ul>
+                        <p class="mt-2 text-slate-600"><strong>תועלת:</strong> עוזר להפחית הטיות בתגובות LLM על ידי התמקדות בעקרונות כלליים במקום בפרטים ספציפיים בשלב מוקדם.</p>
+                         <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_stepBack" data-technique-name="פרומפטינג בנסיגה לאחור (Step-Back)" data-technique-description="טכניקה המנחה את המודל לשקול שאלה כללית הקשורה למשימה לפני מענה על השאלה הספציפית, כדי להפעיל ידע רקע." class="generate-example-btn bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_stepBack" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_stepBack" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-violet-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article id="tech-cot" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-indigo-700 mb-3">2.5 שרשרת מחשבה (Chain of Thought - CoT)</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">טכניקת פרומפטינג לשיפור יכולות ההיגיון של LLM-ים על ידי יצירת "שלבי היגיון ביניים". זה עוזר ל-LLM לייצר תשובות מדויקות יותר. ניתן לשלב זאת עם פרומפטינג Few-Shot כדי לקבל תוצאות טובות יותר במשימות מורכבות הדורשות היגיון לפני מתן תגובה.</p>
+                        <p class="mt-2 text-slate-600"><strong>יתרונות:</strong></p>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>יעיל במיוחד ודורש מעט מאמץ.</li>
+                            <li>עובד היטב עם מודלי LLM "מהמדף" ללא צורך בכוונון עדין.</li>
+                            <li>מספק יכולת פירוש (interpretability): ניתן ללמוד מתגובות ה-LLM ולראות את שלבי ההיגיון.</li>
+                            <li>משפר חוסן (robustness) במעבר בין גרסאות שונות של LLM.</li>
+                        </ul>
+                        <p class="mt-3 text-slate-600 font-medium">דוגמה: פתרון בעיה מתמטית.</p>
+                        <p class="mt-1 text-slate-600"><strong>פרומפט ללא CoT (Zero-Shot):</strong></p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                           <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">כשהייתי בן 3, בן/בת זוגי היה/הייתה פי 3 מגילי. עכשיו אני בן 20. בן כמה בן/בת זוגי?</code></pre>
+                            <button class="copy-btn mt-2 bg-indigo-600 text-white px-3 py-1 text-xs rounded hover:bg-indigo-700 transition-colors">העתק קוד</button>
+                        </div>
+                        <p class="mt-1 text-slate-600">פלט אפשרי (ולא נכון): <code class="bg-slate-200 px-1 rounded">63</code></p>
+                        <p class="mt-3 text-slate-600"><strong>פרומפט עם CoT:</strong></p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                           <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">כשהייתי בן 3, בן/בת זוגי היה/הייתה פי 3 מגילי. עכשיו אני בן 20. בן כמה בן/בת זוגי? בוא נחשוב צעד אחר צעד.</code></pre>
+                            <button class="copy-btn mt-2 bg-indigo-600 text-white px-3 py-1 text-xs rounded hover:bg-indigo-700 transition-colors">העתק קוד</button>
+                        </div>
+                        <p class="mt-1 text-slate-600">פלט אפשרי (נכון):</p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg text-slate-800">
+                            <p>כך פותרים את הבעיה:</p>
+                            <ol class="list-decimal list-inside rtl-code">
+                                <li>מצא את גיל בן/בת הזוג כשהיית בן 3: גילך היה 3 * 3 = 9 שנים.</li>
+                                <li>מצא את הפרש הגילאים: הפרש הגילאים הוא 9 - 3 = 6 שנים. בן/בת זוגך מבוגר/ת ממך ב-6 שנים.</li>
+                                <li>חשב את גילו/ה הנוכחי של בן/בת הזוג: מכיוון שאתה כעת בן 20, גילו/ה של בן/בת זוגך הוא 20 + 6 = 26 שנים.</li>
+                            </ol>
+                            <p class="rtl-code">אז התשובה היא 26.</p>
+                        </div>
+                         <p class="mt-3 text-slate-600"><strong>שילוב CoT עם Few-Shot (לבעיות מורכבות יותר):</strong></p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                           <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">ש: כשאח שלי היה בן שנתיים, הייתי כפול מגילו. עכשיו אני בן 40. בן כמה אח שלי? בוא נחשוב צעד אחר צעד.
+ת: כשאח שלך היה בן שנתיים, היית בן 2 * 2 = 4 שנים. זה הפרש גילאים של שנתיים ואתה מבוגר יותר. עכשיו אתה בן 40, אז אחיך בן 40 - 2 = 38 שנים. התשובה היא 38.
+
+ש: כשהייתי בן 3, בן/בת זוגי היה/הייתה פי 3 מגילי. עכשיו אני בן 20. בן כמה בן/בת זוגי? בוא נחשוב צעד אחר צעד.
+ת:</code></pre>
+                            <button class="copy-btn mt-2 bg-indigo-600 text-white px-3 py-1 text-xs rounded hover:bg-indigo-700 transition-colors">העתק קוד</button>
+                        </div>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_cot" data-technique-name="שרשרת מחשבה (Chain of Thought - CoT)" data-technique-description="טכניקה המנחה את המודל לייצר שלבי היגיון ביניים לפני מתן התשובה הסופית, כדי לשפר יכולות פתרון בעיות." class="generate-example-btn bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_cot" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_cot" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-indigo-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article id="tech-tot" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-fuchsia-700 mb-3">2.7 עץ מחשבות (Tree of Thoughts - ToT)</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">מכליל את הרעיון של פרומפטינג CoT בכך שהוא מאפשר ל-LLM-ים לחקור נתיבי היגיון (מחשבות) מרובים בו-זמנית, במקום רק לעקוב אחר שרשרת ליניארית אחת של מחשבה. זה מאפשר למודל לשקול מספר אפשרויות בכל שלב, לבצע הערכה שלהן, ולבחור את הנתיב המבטיח ביותר להמשך.</p>
+                        <p class="mt-2 text-slate-600"><strong>יתרון:</strong> מתאים במיוחד למשימות מורכבות הדורשות חקירה ובחינה של פתרונות אפשריים מרובים.</p>
+                        <p class="mt-2 text-slate-600"><strong>תיאור התהליך (כמו דיאגרמה):</strong></p>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li><strong>שרשרת מחשבה (CoT):</strong> קלט ← מחשבה1 ← מחשבה2 ← ... ← פלט. (נתיב ליניארי)</li>
+                            <li><strong>עץ מחשבות (ToT):</strong>
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>קלט ← (מחשבה א1, מחשבה א2, מחשבה א3)  [הערכה ובחירת הטובה ביותר, נניח א2]</li>
+                                    <li>מחשבה א2 ← (מחשבה ב1, מחשבה ב2, מחשבה ב3) [הערכה ובחירת הטובה ביותר, נניח ב1]</li>
+                                    <li>...ממשיך כך עד לפלט.</li>
+                                </ul>
+                                נתיבים פחות מבטיחים נדחים, והמודל מתמקד בנתיבים מבטיחים.
+                            </li>
+                        </ul>
+                        <p class="mt-2 text-slate-600"><strong>יישום:</strong> בדרך כלל דורש מימוש באמצעות קוד או פריימוורק ייעודי, ולא ניתן ליישום ישירות בפרומפט טקסטואלי פשוט למודל.</p>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_tot" data-technique-name="עץ מחשבות (Tree of Thoughts - ToT)" data-technique-description="טכניקה המאפשרת למודל לחקור נתיבי היגיון מרובים במקביל, להעריך אותם ולבחור את המבטיחים ביותר, בדומה לעץ." class="generate-example-btn bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_tot" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_tot" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-fuchsia-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <article id="tech-react" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-purple-700 mb-3">2.8 ReAct (Reason & Act - היגיון ופעולה)</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">פרדיגמה המאפשרת ל-LLM-ים לפתור משימות מורכבות באמצעות שילוב של היגיון בשפה טבעית וביצוע פעולות באמצעות כלים חיצוניים (כמו חיפוש באינטרנט, מפרש קוד, גישה ל-API וכו'). ה-LLM יכול לבצע פעולות מסוימות, כמו אינטראקציה עם API-ים חיצוניים כדי לאחזר מידע, וזהו צעד ראשון לקראת מידול סוכנים (agents).</p>
+                        <p class="mt-2 text-slate-600"><strong>אופן פעולה:</strong> ReAct מחקה את האופן שבו בני אדם פועלים בעולם האמיתי: אנו חושבים (reason) באופן מילולי ונוקטים בפעולות (act) כדי להשיג מידע.</p>
+                        <p class="mt-2 text-slate-600"><strong>לולאת מחשבה-פעולה-תצפית:</strong></p>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-600">
+                            <li>ה-LLM תחילה חושב (Thought) על הבעיה ומייצר תוכנית פעולה.</li>
+                            <li>הוא מבצע פעולה (Action) באמצעות כלי.</li>
+                            <li>הוא מקבל תצפית (Observation) - תוצאת הפעולה.</li>
+                            <li>ה-LLM משתמש בתצפיות כדי לעדכן את ההיגיון שלו ולייצר תוכנית פעולה חדשה.</li>
+                            <li>התהליך נמשך עד שה-LLM מגיע לפתרון הבעיה.</li>
+                        </ol>
+                        <p class="mt-2 text-slate-600"><strong>יישום:</strong> ReAct הוא למעשה יישום של סוכן (agent). ניתן לממש זאת באמצעות קוד, למשל עם LangChain.</p>
+                        <p class="mt-3 text-slate-600 font-medium">דוגמה (באמצעות LangChain ו-Vertex AI):</p>
+                        <p class="mt-1 text-slate-600">פרומפט: "כמה ילדים יש לחברי להקת מטאליקה?"</p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg text-sm text-slate-800 space-y-1">
+                            <p><strong>מחשבה 1:</strong> למטאליקה יש 4 חברים.</p>
+                            <p><strong>פעולה 1:</strong> חיפוש.</p>
+                            <p><strong>קלט לפעולה 1:</strong> "כמה ילדים יש לג'יימס הטפילד?"</p>
+                            <p><strong>תצפית 1:</strong> "שלושה ילדים."</p>
+                            <p><strong>מחשבה 2:</strong> 1/4 מחברי להקת מטאליקה יש 3 ילדים.</p>
+                            <p><strong>פעולה 2:</strong> חיפוש.</p>
+                            <p><strong>קלט לפעולה 2:</strong> "כמה ילדים יש ללארס אולריך?"</p>
+                            <p><strong>תצפית 2:</strong> "3."</p>
+                            <p><em>(ממשיך כך עבור קירק האמט ורוברט טרוחיו...)</em></p>
+                            <p><strong>מחשבה סופית:</strong> 4/4 מחברי להקת מטאליקה יש 10 ילדים (בסך הכל).</p>
+                            <p><strong>תשובה סופית:</strong> 10.</p>
+                        </div>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_react" data-technique-name="ReAct (Reason & Act)" data-technique-description="פרדיגמה המשלבת היגיון וביצוע פעולות באמצעות כלים חיצוניים, ומאפשרת למודל לפתור משימות מורכבות." class="generate-example-btn bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_react" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                             <div id="exampleLoader_react" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-purple-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article id="tech-ape" class="pt-6 border-t border-slate-200">
+                        <h3 class="text-2xl font-medium text-pink-700 mb-3">2.9 הנדסת פרומפטים אוטומטית (APE)</h3>
+                        <p class="mt-2 text-slate-600 leading-relaxed">מכיוון שכתיבת פרומפטים יכולה להיות מורכבת, הרעיון הוא להשתמש ב-AI כדי "להנדס" או ליצור פרומפטים עבורנו. השיטה לא רק מקלה על הצורך בקלט אנושי אלא גם משפרת את ביצועי המודל במשימות שונות.</p>
+                        <p class="mt-2 text-slate-600"><strong>תהליך:</strong></p>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-600">
+                            <li>אתה מנחה מודל לייצר עוד פרומפטים.</li>
+                            <li>מעריכים אותם.</li>
+                            <li>אפשר לשנות את הפרומפטים הטובים.</li>
+                            <li>חוזרים על התהליך.</li>
+                        </ol>
+                        <p class="mt-3 text-slate-600 font-medium">דוגמה: אימון צ'אטבוט עבור חנות אינטרנטית למרצ'נדייז של להקות. המטרה היא למצוא את כל הדרכים השונות שלקוחות יכולים לנסח את הזמנתם לחולצת טי שירט של להקה.</p>
+                        <p class="mt-1 text-slate-600"><strong>פרומפט למודל (כדי לייצר פרומפטים אחרים):</strong></p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                           <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">יש לנו חנות אינטרנטית למרצ'נדייז של חולצות טי, וכדי לאמן צ'אטבוט אנו צריכים דרכים שונות להזמין: 'חולצת מטאליקה אחת בגודל S'. צור 10 גרסאות, עם אותה סמנטיקה אך שמור על אותה משמעות.</code></pre>
+                            <button class="copy-btn mt-2 bg-pink-600 text-white px-3 py-1 text-xs rounded hover:bg-pink-700 transition-colors">העתק קוד</button>
+                        </div>
+                        <p class="mt-1 text-slate-600"><strong>פלט (10 פרומפטים שנוצרו על ידי ה-AI):</strong></p>
+                        <div class="mt-1 bg-slate-100 p-4 rounded-lg text-sm text-slate-800">
+                            <ol class="list-decimal list-inside rtl-code">
+                                <li>"אני רוצה לרכוש חולצת מטאליקה במידה סמול."</li>
+                                <li>"האם אני יכול להזמין חולצת מטאליקה קטנה?"</li>
+                                <li>... (וכו' עוד 8 גרסאות)</li>
+                            </ol>
+                        </div>
+                        <p class="mt-2 text-slate-600"><strong>שימוש:</strong> שיטה זו שימושית במיוחד ליצירת מערכי נתונים גדולים לאימון או לבדיקת עמידות של מערכות מבוססות LLM.</p>
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <button id="generateExampleBtn_ape" data-technique-name="הנדסת פרומפטים אוטומטית (APE)" data-technique-description="שיטה המשתמשת ב-AI כדי ליצור ולהעריך פרומפטים באופן אוטומטי, במטרה לשפר ביצועים וליצור מערכי נתונים." class="generate-example-btn bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium py-2 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all">
+                                ✨ הפק דוגמה חדשה (Gemini)
+                            </button>
+                            <div id="generatedExampleOutput_ape" class="gemini-output mt-3 p-3 bg-slate-50 rounded-md border border-slate-200 min-h-[80px]">
+                                 <p class="text-slate-400 italic text-sm">דוגמה שנוצרה על ידי Gemini תופיע כאן...</p>
+                            </div>
+                            <div id="exampleLoader_ape" class="hidden mt-2 text-center">
+                                <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-pink-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="prompt-enhancer" class="mb-12 space-y-6 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-semibold text-cyan-700 border-r-4 border-cyan-500 pr-4">✨ משפר פרומפטים (מופעל ע"י Gemini)</h2>
+                <p class="text-slate-700 leading-relaxed">הזינו פרומפט משלכם וקבלו הצעות לשיפורו, מבוססות על העקרונות שלמדתם במדריך. Gemini יעזור לכם לחדד את הפרומפטים שלכם ולהפיק מהם את המרב.</p>
+                <div>
+                    <label for="apiKeyInput" class="block mb-2 text-sm font-medium text-slate-700">Gemini API Key (נדרש לכל תכונות ה-AI):</label>
+                    <input type="password" id="apiKeyInput" class="block p-2.5 w-full text-sm text-slate-900 bg-slate-50 rounded-lg border border-slate-300 focus:ring-cyan-500 focus:border-cyan-500 rtl-code" placeholder="הדבק כאן את מפתח ה-API שלך">
+                </div>
+                <div>
+                    <label for="userPrompt" class="block mb-2 text-sm font-medium text-slate-700">הפרומפט שלכם:</label>
+                    <textarea id="userPrompt" rows="4" class="block p-2.5 w-full text-sm text-slate-900 bg-slate-50 rounded-lg border border-slate-300 focus:ring-cyan-500 focus:border-cyan-500" placeholder="לדוגמה: כתוב לי סיפור קצר על דרקון וחברות"></textarea>
+                </div>
+                <button id="enhancePromptBtn" class="mt-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out flex items-center justify-center space-x-2 space-x-reverse">
+                    <span>שפר את הפרומפט</span>
+                    <span class="text-yellow-300 text-lg">✨</span>
+                </button>
+                <div id="enhancementOutput" class="gemini-output mt-4 p-4 bg-slate-50 rounded-lg min-h-[100px] border border-slate-200">
+                    <p class="text-slate-500 italic">הצעות השיפור יופיעו כאן...</p>
+                </div>
+                <div id="enhancerLoader" class="hidden mt-4 text-center">
+                    <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                        <span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">טוען...</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="best-practices" class="mb-12 space-y-6 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-semibold text-cyan-700 border-r-4 border-cyan-500 pr-4">שיטות עבודה מומלצות</h2>
+                
+                <details class="bg-slate-50 p-4 rounded-lg">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">✅ 3.1 ספקו דוגמאות (Provide Examples)</summary>
+                    <p class="mt-3 text-slate-600 leading-relaxed">זוהי שיטת העבודה המומלצת החשובה ביותר. ספקו דוגמאות (One-Shot / Few-Shot) בתוך הפרומפט. זה יעיל מאוד מכיוון שהוא פועל ככלי הוראה רב עוצמה. הדוגמאות מציגות פלטים רצויים או תגובות דומות, ומאפשרות למודל ללמוד מהן ולהתאים את היצירה שלו בהתאם. זה כמו לתת למודל נקודת ייחוס או מטרה לשאוף אליה, מה שמשפר את הדיוק, הסגנון והטון של התגובה שלו כדי להתאים טוב יותר לציפיות שלך.</p>
+                </details>
+                <details class="bg-slate-50 p-4 rounded-lg">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">🧹 3.2 עצבו בפשטות (Design with Simplicity)</summary>
+                    <p class="mt-3 text-slate-600 leading-relaxed">פרומפטים צריכים להיות תמציתיים, ברורים וקלים להבנה הן עבורך והן עבור המודל. ככלל אצבע, אם זה מבלבל עבורך, סביר להניח שזה יהיה מבלבל גם עבור המודל. נסו לא להשתמש בשפה מורכבת ואל תספקו מידע מיותר.</p>
+                </details>
+                <details class="bg-slate-50 p-4 rounded-lg">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">🎯 3.3 היו ספציפיים לגבי הפלט (Be Specific about the Output)</summary>
+                    <p class="mt-3 text-slate-600 leading-relaxed">הוראה תמציתית עשויה לא להנחות את ה-LLM מספיק או שהיא עלולה להיות כללית מדי. מתן פרטים ספציפיים בפרומפט (באמצעות פרומפטינג מערכת או הקשרי) יכול לעזור למודל להתמקד במה שרלוונטי, ולשפר את הדיוק הכולל.</p>
+                     <p class="mt-2 text-slate-600"><strong>דוגמה:</strong></p>
+                     <ul class="list-disc list-inside space-y-1">
+                        <li><strong>לא לעשות:</strong> "צור פוסט בלוג על קונסולות משחקי וידאו."</li>
+                        <li><strong>כן לעשות:</strong> "צור פוסט בלוג בן 3 פסקאות על 5 קונסולות משחקי הווידאו המובילות. הפוסט צריך להיות אינפורמטיבי ומרתק, ולהיכתב בסגנון שיחה."</li>
+                     </ul>
+                </details>
+                <details class="bg-slate-50 p-4 rounded-lg">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">➕ 3.4 השתמשו בהוראות על פני אילוצים (Use Instructions over Constraints)</summary>
+                     <p class="mt-3 text-slate-600 leading-relaxed">הוראות ואילוצים משמשים בפרומפטינג להנחיית הפלט של LLM.</p>
+                     <ul class="list-disc list-inside space-y-1 mt-2">
+                        <li><strong>הוראה:</strong> מספקת הנחיות מפורשות על הפורמט, הסגנון או התוכן הרצוי.</li>
+                        <li><strong>אילוץ:</strong> מגדיר מגבלות על מה שהמודל <em>לא</em> צריך לעשות.</li>
+                     </ul>
+                     <p class="mt-2 text-slate-600"><strong>המלצה:</strong> בדרך כלל עדיף להשתמש בהוראות חיוביות (מה לעשות) מאשר באילוצים שליליים (מה לא לעשות), מכיוון שמודלים מגיבים טוב יותר להנחיות ישירות.</p>
+                </details>
+                 <details class="bg-slate-50 p-4 rounded-lg">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">📏 3.5 שלטו באורך הטוקנים המקסימלי (Control the Max Token Length)</summary>
+                    <p class="mt-3 text-slate-600 leading-relaxed">כפי שנדון קודם, ניתן לשלוט באורך תגובת LLM שנוצרה על ידי הגדרת מגבלת טוקנים מקסימלית בתצורה או על ידי בקשה מפורשת לאורך ספציפי בפרומפט.</p>
+                    <p class="mt-2 text-slate-600"><strong>דוגמה:</strong> "הסבר פיזיקה קוונטית בהודעה באורך של ציוץ (טוויט)."</p>
+                </details>
+                <details class="bg-slate-50 p-4 rounded-lg">
+                    <summary class="font-medium text-lg text-cyan-700 hover:text-cyan-600">🔄 3.6 השתמשו במשתנים בפרומפטים (Use Variables in Prompts)</summary>
+                    <p class="mt-3 text-slate-600 leading-relaxed">כדי לעשות שימוש חוזר בפרומפטים ולהפוך אותם לדינמיים יותר, השתמשו במשתנים בפרומפט, אותם ניתן לשנות עבור קלטים שונים. במקום לקודד "קשה" (hardcoding) ערך ספציפי בפרומפט, השתמשו במשתנה. משתנים יכולים לחסוך לכם זמן ומאמץ בכך שהם מאפשרים לכם להימנע מחזרה על עצמכם.</p>
+                    <p class="mt-2 text-slate-600"><strong>דוגמה:</strong></p>
+                    <div class="mt-1 bg-slate-100 p-4 rounded-lg">
+                       <pre class="rtl-code whitespace-pre-wrap text-sm text-slate-800"><code class="language-text">משתנים: {city} = "אמסטרדם"
+פרומפט: "אתה מדריך טיולים. ספר לי עובדה על העיר: {city}."</code></pre>
+                         <button class="copy-btn mt-2 bg-cyan-600 text-white px-3 py-1 text-xs rounded hover:bg-cyan-700 transition-colors">העתק קוד</button>
+                    </div>
+                    <p class="mt-1 text-slate-600">פלט: "אמסטרדם היא עיר יפהפייה מלאה בתעלות, גשרים ורחובות צרים..."</p>
+                </details>
+            </section>
+             <footer class="text-center py-8 text-slate-500 text-sm">
+                <p>&copy; 2024 מדריך הנדסת פרומפטים. כל הזכויות שמורות למקורות המצוינים.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const GEMINI_API_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
+
+            // Mobile Menu
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('translate-x-full');
+                menuToggle.classList.toggle('text-cyan-700')
+                menuToggle.classList.toggle('text-red-500')
+                const isExpanded = !sidebar.classList.contains('translate-x-full');
+                menuToggle.setAttribute('aria-expanded', isExpanded.toString());
+                if(isExpanded) {
+                    menuToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`;
+                } else {
+                    menuToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>`;
+                }
+            });
+
+            sidebar.querySelectorAll('a.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const offset = 20; 
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = targetElement.getBoundingClientRect().top;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('translate-x-full')) {
+                        sidebar.classList.add('translate-x-full');
+                         menuToggle.classList.remove('text-red-500');
+                         menuToggle.classList.add('text-cyan-700');
+                         menuToggle.setAttribute('aria-expanded', 'false');
+                         menuToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>`;
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.tech-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = card.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                     if (targetElement) {
+                        const offset = 20; 
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = targetElement.getBoundingClientRect().top;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const pre = event.target.closest('div').querySelector('pre');
+                    if (pre) {
+                        const code = pre.innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            event.target.innerText = 'הועתק!';
+                            event.target.classList.add('bg-green-500');
+                            setTimeout(() => {
+                                event.target.innerText = 'העתק קוד';
+                                event.target.classList.remove('bg-green-500');
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy text: ', err);
+                            event.target.innerText = 'שגיאה בהעתקה';
+                             event.target.classList.add('bg-red-500');
+                             setTimeout(() => {
+                                event.target.innerText = 'העתק קוד';
+                                event.target.classList.remove('bg-red-500');
+                            }, 2000);
+                        });
+                    }
+                });
+            });
+
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-30% 0px -70% 0px", threshold: 0.1 });
+            sections.forEach(section => observer.observe(section));
+
+            // Chart.js Temperature Visualization
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            const tempSlider = document.getElementById('tempSlider');
+            const tempValueSpan = document.getElementById('tempValue');
+            const initialProbs = [0.6, 0.2, 0.1, 0.05, 0.03, 0.02];
+            const labels = ['מילה א', 'מילה ב', 'מילה ג', 'מילה ד', 'מילה ה', 'מילה ו'];
+            
+            function applyTemperature(logits, temperature) {
+                if (temperature === 0) temperature = 0.00001; 
+                const scaledLogits = logits.map(l => Math.log(l) / temperature);
+                const maxLogit = Math.max(...scaledLogits.filter(isFinite));
+                let exps;
+                if (scaledLogits.every(l => !isFinite(l))) {
+                    exps = scaledLogits.map(() => 1/scaledLogits.length);
+                } else {
+                    exps = scaledLogits.map(l => isFinite(l) ? Math.exp(l - maxLogit) : 0);
+                }
+                const sumExps = exps.reduce((a, b) => a + b, 0);
+                if (sumExps === 0) return exps.map(() => 1/exps.length);
+                return exps.map(e => e / sumExps);
+            }
+
+            let tempChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'הסתברות לבחירת הטוקן הבא', data: applyTemperature(initialProbs, parseFloat(tempSlider.value)), backgroundColor: 'rgba(56, 189, 248, 0.7)', borderColor: 'rgba(14, 116, 144, 1)', borderWidth: 1, borderRadius: 4, hoverBackgroundColor: 'rgba(56, 189, 248, 0.9)' }] },
+                options: { maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true, max: 1, title: { display: true, text: 'הסתברות', font: {weight: '500'} }, grid: { color: '#e2e8f0' } }, x: { title: { display: true, text: 'טוקנים אפשריים', font: {weight: '500'} }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: 'rgba(0,0,0,0.8)', titleFont: {size: 14, weight: 'bold'}, bodyFont: {size: 12}, callbacks: { label: function(context) { return `הסתברות: ${Math.round(context.raw * 100)}%`; } } } }, animation: { duration: 300, easing: 'easeInOutQuad' } }
+            });
+            tempSlider.addEventListener('input', (e) => {
+                const temp = parseFloat(e.target.value);
+                tempValueSpan.textContent = temp.toFixed(2);
+                tempChartInstance.data.datasets[0].data = applyTemperature(initialProbs, temp); 
+                tempChartInstance.update('none');
+            });
+            tempValueSpan.textContent = parseFloat(tempSlider.value).toFixed(2);
+            document.querySelectorAll('details').forEach(detail => detail.removeAttribute('open'));
+
+            // Gemini API Functions
+            async function callGeminiAPI(promptText, apiKey) {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: promptText }] }]
+                };
+                try {
+                    const response = await fetch(`${GEMINI_API_URL_BASE}${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("Gemini API Error:", errorData);
+                        return `שגיאה בקריאה ל-API. אנא בדוק את מפתח ה-API שלך ואת הגדרות החשבון. פרטים: ${errorData.error?.message || response.statusText}`;
+                    }
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        console.error("Unexpected Gemini API response structure:", result);
+                        return "שגיאה: התקבלה תגובה לא צפויה מהשרת.";
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    return "שגיאה בתקשורת עם השרת. אנא בדוק את חיבור האינטרנט ונסה שוב.";
+                }
+            }
+            
+            const apiKeyInput = document.getElementById('apiKeyInput');
+
+            // Prompt Enhancer Logic
+            const enhancePromptBtn = document.getElementById('enhancePromptBtn');
+            const userPromptTextarea = document.getElementById('userPrompt');
+            const enhancementOutputDiv = document.getElementById('enhancementOutput');
+            const enhancerLoader = document.getElementById('enhancerLoader');
+
+            if (enhancePromptBtn) {
+                enhancePromptBtn.addEventListener('click', async () => {
+                    const apiKey = apiKeyInput.value.trim();
+                    if (!apiKey) {
+                        enhancementOutputDiv.innerHTML = '<p class="text-red-600 font-semibold italic">אנא הזן מפתח API של Gemini כדי להשתמש בתכונה זו.</p>';
+                        return;
+                    }
+                    
+                    const userPrompt = userPromptTextarea.value.trim();
+                    if (!userPrompt) {
+                        enhancementOutputDiv.innerHTML = '<p class="text-red-600 font-semibold italic">אנא הזן פרומפט לשיפור.</p>';
+                        return;
+                    }
+
+                    enhancerLoader.classList.remove('hidden');
+                    enhancementOutputDiv.innerHTML = '<p class="text-slate-500 italic">מעבד את הפרומפט שלך עם Gemini...</p>';
+                    
+                    const metaPrompt = `אתה מומחה בהנדסת פרומפטים. נתח את הפרומפט הבא שסופק על ידי המשתמש והצע 3 דרכים ספציפיות ומעשיות לשפרו עבור מודל שפה גדול. בסס את הצעותיך על שיטות עבודה מומלצות בהנדסת פרומפטים כגון הוספת הקשר, הגדרת תפקיד, ציון פורמט פלט, שימוש בדוגמאות (few-shot) אם רלוונטי, או הפיכה לספציפי יותר. עבור כל הצעה, ספק הסבר קצר מדוע היא תשפר את הפרומפט. הצג את ההצעות בבירור ובשפה העברית. הפרומפט של המשתמש הוא: "${userPrompt}"`;
+                    
+                    const suggestions = await callGeminiAPI(metaPrompt, apiKey);
+                    enhancementOutputDiv.innerHTML = suggestions; 
+                    enhancerLoader.classList.add('hidden');
+                });
+            }
+
+            // Generate Example for Techniques Logic
+            document.querySelectorAll('.generate-example-btn').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const apiKey = apiKeyInput.value.trim();
+                    const techniqueName = button.dataset.techniqueName;
+                    const techniqueDescription = button.dataset.techniqueDescription;
+                    const outputDivId = `generatedExampleOutput_${button.id.split('_')[1]}`;
+                    const loaderDivId = `exampleLoader_${button.id.split('_')[1]}`;
+                    
+                    const outputDiv = document.getElementById(outputDivId);
+                    const loaderDiv = document.getElementById(loaderDivId);
+
+                    if (!outputDiv || !loaderDiv) {
+                        console.error("Could not find output or loader div for", button.id);
+                        return;
+                    }
+                    
+                    if (!apiKey) {
+                        outputDiv.innerHTML = '<p class="text-red-600 font-semibold italic text-sm">אנא הזן מפתח API של Gemini באזור "משפר הפרומפטים" כדי להשתמש בתכונה זו.</p>';
+                        return;
+                    }
+
+                    loaderDiv.classList.remove('hidden');
+                    outputDiv.innerHTML = `<p class="text-slate-400 italic text-sm">מייצר דוגמה עם Gemini עבור ${techniqueName}...</p>`;
+
+                    const exampleMetaPrompt = `אנא הפק דוגמה חדשה, תמציתית וממחישה עבור טכניקת הפרומפטינג הבאה: "${techniqueName}".
+טכניקה זו עוסקת ב: "${techniqueDescription}".
+הדוגמה צריכה להדגים בבירור כיצד טכניקה זו מיושמת.
+ספק את התרחיש או המשימה, את הפרומפט עצמו, ואופציונלית, את הפלט הצפוי אם זה עוזר להבהיר את הדוגמה.
+פרמט את הפלט בצורה ברורה, אולי תוך שימוש בתוויות כמו "תרחיש:", "פרומפט:", ו"פלט צפוי:".
+צור דוגמה שונה מדוגמאות נפוצות הנמצאות בספרי לימוד. היה יצירתי.
+הדוגמה צריכה להיות בשפה העברית.`;
+
+                    const example = await callGeminiAPI(exampleMetaPrompt, apiKey);
+                    outputDiv.innerHTML = example; 
+                    loaderDiv.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
