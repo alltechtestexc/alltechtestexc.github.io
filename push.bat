@@ -1,27 +1,30 @@
 @echo off
 :: ====== CONFIGURATION ======
-:: Replace these with your details
+:: Replace with your repo URL
 set GITHUB_REPO_URL=https://github.com/alltechtestexc/alltechtestexc.github.io.git
-set BRANCH=main
-set COMMIT_MSG=Build and deploy
+set BRANCH=gh-pages
+set COMMIT_MSG=Deploy static site
 
 :: ====== BUILD NEXT.JS ======
-echo Building Next.js project...
+echo Installing dependencies...
 @REM call npm install
+
+echo Building Next.js static site...
 call npm run build
+call npm run export
 
-:: If you export static site:
-:: call npm run export
+:: ====== DEPLOY TO GITHUB ======
+cd out
 
-:: ====== PUSH TO GITHUB ======
-echo Preparing to push build to GitHub...
-
+:: Initialize Git (clean deployment each time)
 git init
 git remote add origin %GITHUB_REPO_URL%
+git checkout -b %BRANCH%
+
 git add .
 git commit -m "%COMMIT_MSG%"
-git branch -M %BRANCH%
 git push -u origin %BRANCH% --force
 
-echo Done!
+cd ..
+echo Deployment complete!
 pause
