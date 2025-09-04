@@ -1,0 +1,20 @@
+{
+  "title": {
+    "en": "The park",
+    "he": "הפארק"
+  },
+  "tags": [],
+  "description": "",
+  "createdAt": "2025-09-01T20:43:14.330Z",
+  "updatedAt": "2025-09-03T18:20:11.411Z",
+  "year": "2020",
+  "height": "70",
+  "width": "80",
+  "technique": {
+    "en": "oil and ink on canvas",
+    "he": "צבעי שמן ודיו על בד"
+  },
+  "categories": [
+    "Oil"
+  ]
+}

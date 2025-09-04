@@ -1,0 +1,20 @@
+{
+  "title": {
+    "en": "My parents",
+    "he": "הוריי"
+  },
+  "tags": [],
+  "description": "",
+  "createdAt": "2025-09-01T20:47:07.076Z",
+  "updatedAt": "2025-09-03T18:19:20.632Z",
+  "year": "2018",
+  "technique": {
+    "en": "oil and ink on canvas",
+    "he": "צבעי שמן ודיו על בד"
+  },
+  "height": "70",
+  "width": "60",
+  "categories": [
+    "Oil"
+  ]
+}

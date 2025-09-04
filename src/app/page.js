@@ -1,103 +1,114 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+
+
+import { filterByCategory } from "../../utils/filter"
+import { formats } from "../../utils/formats"
+import { useState, useEffect, useContext } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ImagePreview } from "./layout";
+import Socials from "../components/socials"
+
+export function Slideshow({ artworks }) {
+  const [index, setIndex] = useState(0);
+  const context = useContext(ImagePreview)
+
+  // auto-slide every 6s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex(i => (i + 1) % artworks.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [artworks.length]);
+
+  const prev = () =>
+    setIndex(i => (i - 1 + artworks.length) % artworks.length);
+  const next = () =>
+    setIndex(i => (i + 1) % artworks.length);
+
+  if (artworks.length === 0) return null;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="flex w-full max-w-4xl mx-auto h-full gap-4 items-center" dir="ltr">
+      {/* Images */}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      <button
+        onClick={prev}
+        className="h-10 w-10 flex-none flex items-center justify-center"
+      >
+        <ChevronLeft size={28} color="#333333" />
+      </button>
+
+<div className="overflow-hidden">
+      <div
+        className="flex transition-transform duration-700 ease-in-out items-center"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {artworks.map((art, i) => (
+          <div key={i} className="flex-shrink-0 w-full p-4 flex flex-col gap-2">
+            <img
+              src={art.src}
+              alt={art.metadata?.title[context.language] || ""}
+              className="w-full items-center shadow-lg shadow-black/20"
+              onClick={()=>context.open(i, artworks)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+            {art.metadata?.title && (
+              <div className="text-center text-zinc-900 py-2">
+                {formats.outer(art.metadata, context.language)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      </div>
+
+      <button
+        onClick={next}
+        className="h-10 w-10 flex-none flex items-center justify-center"
+      >
+        
+        <ChevronRight size={28} color="#333333" />
+      </button>
+
+      {/* Dots */}
+      {/* <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+        {artworks.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`w-3 h-3 rounded-full transition ${
+              i === index ? "bg-white" : "bg-gray-400/70"
+            }`}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        ))}
+      </div> */}
     </div>
+  );
+}
+
+
+export default function GalleryPage() {
+  const [artworks, setArtworks] = useState([]);
+
+  useEffect(() => {
+    fetch("/artworks.json")
+      .then(res => res.json())
+      .then(filterByCategory("Best"))
+      .then(setArtworks)
+      .catch(console.error);
+  }, []);
+
+  return (
+<div>
+<div className="max-w-3xl h-full mx-auto">
+  <Slideshow artworks={artworks} />
+</div>
+<div className="flex flex-col items-center w-full">
+
+  <div className="flex gap-4 items-center text-lg">
+    <Socials></Socials>
+    </div>
+</div>
+</div>
   );
 }
