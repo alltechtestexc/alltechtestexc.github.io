@@ -40,11 +40,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
-      - name: Install pnpm & dependencies
+      - name: Install pnpm
         run: |
-          npm install -g pnpm
-          echo "$(npm bin -g)" >> $GITHUB_PATH
-          pnpm install --frozen-lockfile
+        npm install -g pnpm
+        echo "$(npm bin -g)" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfileile
 
       - name: Build with Next.js
         run: pnpm next build
