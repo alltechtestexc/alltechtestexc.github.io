@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext } from "vm"
-import { ImagePreview, STRINGS } from "../layout"
+import { ImagePreview } from "../layout"
+import { STRINGS } from "../../../utils/STRINGS"
 import { useContext } from "react"
 
 const about = {

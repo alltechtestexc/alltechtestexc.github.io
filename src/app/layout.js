@@ -9,26 +9,10 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Menu } from "lucide-react";
 import { formats } from "../../utils/formats";
 import Image from "next/image";
+import { STRINGS } from "../../utils/STRINGS";
 
 const LANGUAGES = ['en', 'he']
 const FLAGS = {'en': '🇬🇧','he': ''}
-export const STRINGS = {
-  titles: {
-    home: {'en': "Home", 'he': "בית"},
-    oil: {'en': "Oil paintings", 'he': "יצירות שמן"},
-    mixed: {'en': "Mixed technique", 'he': "טכניקה מעורבת"},
-    books: {'en': "Books", 'he': "ספרים"},
-    about: {'en': "About", 'he': "אודות"},
-    contact: {'en': "Contact", 'he': "פרטי קשר"}
-  },
-  misc: {
-    tel: {'en': "Tel", 'he': "טל"},
-    lang: {'en': "English", 'he': "עברית"},
-    cc: {'en': "US", 'he': "IL"}
-  }
-  
-}
-
 const playfair = Playfair_Display({
   variable: "--font-heading",
   subsets: ["latin"],

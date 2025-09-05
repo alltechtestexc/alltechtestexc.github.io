@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useContext } from "react";
 import { filterByCategory } from "../../../utils/filter"
-import { ImagePreview, STRINGS } from "../layout";
+import { ImagePreview } from "../layout";
+import { STRINGS } from "../../../utils/STRINGS";
 import { formats } from "../../../utils/formats";
 import Gallery from "../../components/gallery"
 
