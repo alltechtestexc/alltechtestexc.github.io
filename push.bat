@@ -11,7 +11,6 @@ echo Installing dependencies...
 
 echo Building Next.js static site...
 call npm run build
-call npm run export
 
 :: ====== DEPLOY TO GITHUB ======
 cd out

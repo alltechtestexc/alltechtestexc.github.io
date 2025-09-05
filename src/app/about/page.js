@@ -34,7 +34,7 @@ export default function Page() {
         </h1>
         </div>
         <div className="flex-none flex flex-col max-w-100">
-            <img className="max-h-full" src="/pfp.jpg"></img>
+            <img className="max-h-full" src="/pfp.jpg"/>
         </div>
     </div>
     

@@ -28,7 +28,7 @@ export default function Page() {
         </div>
         </div>
         <div className="flex-none flex flex-col max-w-100">
-            <img className="max-h-full" src="/images/1 lighthouse.jpg"></img>
+            <img className="max-h-full" src="/images/1 lighthouse.jpg"/>
         </div>
     </div>
     

@@ -8,7 +8,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "export": "next export"
+    "export": "next export",
+    "deploy": "next build && gh-pages -d out --nojekyll"
   },
   "dependencies": {
     "keen-slider": "^6.8.6",
@@ -26,6 +27,7 @@
     "@types/react": "19.1.11",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^4"
   }
 }

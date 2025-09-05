@@ -8,8 +8,9 @@ import { useState, useEffect, useContext } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ImagePreview } from "./layout";
 import Socials from "../components/socials"
+import Image from "next/image";
 
-export function Slideshow({ artworks }) {
+ function Slideshow({ artworks }) {
   const [index, setIndex] = useState(0);
   const context = useContext(ImagePreview)
 

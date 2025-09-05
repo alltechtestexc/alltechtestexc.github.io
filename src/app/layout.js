@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Menu } from "lucide-react";
 import { formats } from "../../utils/formats";
+import Image from "next/image";
 
 const LANGUAGES = ['en', 'he']
 const FLAGS = {'en': '🇬🇧','he': ''}
