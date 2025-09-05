@@ -27,9 +27,6 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
@@ -43,8 +40,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install pnpm & dependencies
+        run: |
+          npm install -g pnpm
+          echo "$(npm bin -g)" >> $GITHUB_PATH
+          pnpm install --frozen-lockfile
 
       - name: Build with Next.js
         run: pnpm next build
