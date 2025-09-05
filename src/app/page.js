@@ -6,7 +6,7 @@ import { filterByCategory } from "../../utils/filter"
 import { formats } from "../../utils/formats"
 import { useState, useEffect, useContext } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { ImagePreview } from "./layout";
+import { ImagePreview } from "../../utils/ImagePreview";
 import Socials from "../components/socials"
 import Image from "next/image";
 

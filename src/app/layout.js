@@ -5,11 +5,12 @@ import { Playfair_Display, Lora } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Menu } from "lucide-react";
 import { formats } from "../../utils/formats";
 import Image from "next/image";
 import { STRINGS } from "../../utils/STRINGS";
+import { ImagePreview } from "../../utils/ImagePreview";
 
 const LANGUAGES = ['en', 'he']
 const FLAGS = {'en': '🇬🇧','he': ''}
@@ -24,8 +25,6 @@ const lora = Lora({
   subsets: ["latin"],
   weight: ["400", "500"], // slightly softer than normal
 });
-
-export const ImagePreview = createContext()
 
 function LanguageSwitch() {
   const context = useContext(ImagePreview)

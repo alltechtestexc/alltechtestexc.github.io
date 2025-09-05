@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useContext } from "react";
-import { ImagePreview } from "../app/layout";
+import { ImagePreview } from "../../utils/ImagePreview";
 import { formats } from "../../utils/formats";
 
 export default function Gallery({filter}) {
