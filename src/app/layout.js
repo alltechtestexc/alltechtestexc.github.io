@@ -117,11 +117,17 @@ export default function RootLayout({ children }) {
   const [sidenavOpen, setSidenavOpen] = useState(false)
   const pathname = usePathname();
 
-  const [language, setLanguage] = useState(localStorage?.getItem('userLocale') || 'en')
+  const [language, setLanguage] = useState("en"); 
 
-  useEffect(()=>{
-localStorage?.setItem('userLocale', language)
-  }, [language])
+useEffect(() => {
+  const stored = localStorage.getItem("userLocale");
+  if (stored) setLanguage(stored);
+}, []);
+
+useEffect(() => {
+  localStorage.setItem("userLocale", language);
+}, [language]);
+
 
   const prev = () => {
     setPreviewIndex(previewIndex == 0 ? artworks.length - 1 : previewIndex - 1)
