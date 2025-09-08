@@ -10,7 +10,7 @@ import Gallery from "../../components/gallery"
 export default function GalleryPage() {
     const language = useContext(ImagePreview).language
     return <>
-        <h1 className="text-zinc-900 text-2xl mb-4" dir="auto">{STRINGS.titles.oil[language]}</h1>
+        <h1 style={{ fontFamily: "var(--font-heading) var(--font-hebrew)"}} className="text-zinc-900 text-2xl mb-4" dir="auto">{STRINGS.titles.oil[language]}</h1>
         <Gallery filter={filterByCategory("Oil")}/>
     </>
 }

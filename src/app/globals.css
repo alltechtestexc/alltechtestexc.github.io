@@ -16,8 +16,9 @@
 }
 
 :root {
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Lora", serif;
+  --font-hebrew: "Noto Serif Hebrew", serif;
+  --font-heading: "Playfair Display","Noto Serif Hebrew"  ,serif;
+  --font-body: "Lora", "Noto Serif Hebrew", serif;
 }
 
 h1, h2, h3 {
@@ -27,7 +28,7 @@ h1, h2, h3 {
 
 body {
   background: var(--background);
+  font-family: var(--font-body), var(--font-hebrew), sans-serif;
   color: var(--foreground);
-  font-family: var(--font-body);
   line-height: 1.6;
 }

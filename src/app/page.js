@@ -18,7 +18,7 @@ import Image from "next/image";
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex(i => (i + 1) % artworks.length);
-    }, 6000);
+    }, 4500);
     return () => clearInterval(timer);
   }, [artworks.length]);
 

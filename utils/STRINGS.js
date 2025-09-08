@@ -2,7 +2,7 @@
 export const STRINGS = {
   titles: {
     home: { 'en': "Home", 'he': "בית" },
-    oil: { 'en': "Oil paintings", 'he': "יצירות שמן" },
+    oil: { 'en': "Oil paintings", 'he': "ציורי שמן" },
     mixed: { 'en': "Mixed technique", 'he': "טכניקה מעורבת" },
     books: { 'en': "Books", 'he': "ספרים" },
     about: { 'en': "About", 'he': "אודות" },
@@ -11,6 +11,7 @@ export const STRINGS = {
   misc: {
     tel: { 'en': "Tel", 'he': "טל" },
     lang: { 'en': "English", 'he': "עברית" },
-    cc: { 'en': "US", 'he': "IL" }
+    cc: { 'en': "US", 'he': "IL" },
+    forSale: {'en': "Some of the works are for sale", 'he': "חלק מהעבודות למכירה"}
   }
 };
