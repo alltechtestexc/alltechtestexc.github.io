@@ -26,9 +26,9 @@ export default function Page() {
     const context = useContext(ImagePreview)
 
     return <div className=" h-full mx-auto items-center flex md:flex-row flex-col md:pt-0 pt-10">
-        <div className="flex-1 mr-12">
+        <div className="flex-1 md:mr-12">
         <h1 className="text-zinc-900 text-2xl mb-4 font-bold" dir="auto" style={{ fontFamily: "var(--font-heading) var(--font-hebrew)"}}>{STRINGS.titles.about[context.language]}</h1>
-        <h1 className="text-zinc-900 text-2xl mb-4" dir="auto" style={{ fontFamily: "var(--font-heading) var(--font-hebrew)"}}>
+        <h1 className="text-zinc-900 text-2xl mb-4" dir="auto" style={{ fontFamily: "var(--font-heading) var(--font-hebrew)", fontSize: 22}}>
             {
                 about[context.language]
             }

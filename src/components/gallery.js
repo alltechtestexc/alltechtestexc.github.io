@@ -18,14 +18,21 @@ export default function Gallery({filter}) {
       .catch(console.error);
   }, []);
 
-    return <div className="grid md:grid-cols-3 grid-cols-2">
-        {artworks.map((art, i) => (
-        <div key={i} className="p-2 justify-center flex flex-col">
-          <img src={art.src} alt="" className="shadow-md" onClick={() => context.open(i, artworks)} />
-          {art.metadata?.title[context.language] && (
-            <p className="text-center mt-2 text-zinc-900">{formats.outer(art.metadata, context.language)}</p>
-          )}
-        </div>
-      ))}
-    </div>
+    return  <div className="columns-2 md:columns-3 gap-4 md:gap-10">
+    {artworks.map((art, i) => (
+      <div key={i} className="mb-0 break-inside-avoid">
+        <img
+          src={art.src}
+          alt=""
+          className="w-full"
+          onClick={() => context.open(i, artworks)}
+        />
+        {art.metadata?.title[context.language] && (
+          <p className="text-center mt-2 mb-4 text-zinc-900">
+            {formats.outer(art.metadata, context.language)}
+          </p>
+        )}
+      </div>
+    ))}
+  </div>
 }
