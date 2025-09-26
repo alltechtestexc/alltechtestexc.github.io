@@ -254,3 +254,15 @@ export default function RootLayout({ children }) {
     </ImagePreview.Provider>
   );
 }
+
+
+export const metadata = {
+  title: "Liza Zabarsky",
+  description: "Liza Zabarasky",
+  openGraph: {
+    title: "Liza Zabarsky",
+    description: "Liza Zabarasky",
+    url: "https://lizabar.art",
+    images: ["https://lizabar.art/banner.jpg"],
+  },
+};
