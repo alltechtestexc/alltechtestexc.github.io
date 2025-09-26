@@ -11,6 +11,7 @@ import { formats } from "../../utils/formats";
 import Image from "next/image";
 import { STRINGS } from "../../utils/STRINGS";
 import { ImagePreview } from "../../utils/ImagePreview";
+import Head from "next/head";
 
 const LANGUAGES = ['en', 'he']
 const FLAGS = { 'en': '🇬🇧', 'he': '' }
@@ -162,6 +163,15 @@ export default function RootLayout({ children }) {
         <body
           className={`${playfair.variable} ${lora.variable} ${notoSerifHebrew.variable} antialiased max-h-full bg-neutral-50 text-neutral-900`}
         >
+          <Head>
+            <meta property="og:title" content="Liza Zabarsky" />
+            <meta property="og:description" content="Liza Zabarasky" />
+            <meta property="og:image" content="https://lizabar.art/banner.jpg" />
+            <meta property="og:url" content="https://lizabar.art" />
+            <meta property="og:type" content="website" />
+            <link rel="icon" href="/favicon.ico"/>
+
+          </Head>
           <main className="h-screen flex-1 flex flex-col w-full max-h-fullcenter bg-neutral-50" dir={language === "he" ? "rtl" : "ltr"}>
             <div className="flex flex-1 gap-6 p-6 w-fill  overflow-y-hidden">
               <div className="flex-none md:block hidden">
